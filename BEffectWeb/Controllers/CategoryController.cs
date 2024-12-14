@@ -20,9 +20,28 @@ namespace BEffectWeb.Controllers
             return View(objCategoryList);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Edit(int? id)
         {
+            if (id is null || id == 0) return NotFound();
+
+            Category categoryFromDb = await _appDb.Categories.FindAsync(id);
+            if (categoryFromDb == null) return NotFound();
+
             return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(Category obj)
+        {
+
+            if (ModelState.IsValid)
+            {
+                _appDb.Categories.Add(obj);
+                await _appDb.SaveChangesAsync();
+                  return RedirectToAction("Index");
+            }
+            return View();
+
         }
     }
 }
