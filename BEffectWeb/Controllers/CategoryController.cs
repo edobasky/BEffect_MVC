@@ -1,6 +1,7 @@
 ﻿using BEffectWeb.Data;
 using BEffectWeb.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace BEffectWeb.Controllers
@@ -20,6 +21,25 @@ namespace BEffectWeb.Controllers
             return View(objCategoryList);
         }
 
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(Category obj)
+        {
+
+            if (ModelState.IsValid)
+            {
+                _appDb.Categories.Add(obj);
+                await _appDb.SaveChangesAsync();
+                return RedirectToAction("Index");
+            }
+            return View();
+
+        }
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id is null || id == 0) return NotFound();
@@ -27,7 +47,7 @@ namespace BEffectWeb.Controllers
             Category categoryFromDb = await _appDb.Categories.FindAsync(id);
             if (categoryFromDb == null) return NotFound();
 
-            return View();
+            return View(categoryFromDb);
         }
 
         [HttpPost]
@@ -36,7 +56,7 @@ namespace BEffectWeb.Controllers
 
             if (ModelState.IsValid)
             {
-                _appDb.Categories.Add(obj);
+                _appDb.Categories.Update(obj);
                 await _appDb.SaveChangesAsync();
                   return RedirectToAction("Index");
             }
