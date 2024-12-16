@@ -1,4 +1,6 @@
-﻿using BEffectWeb.Data;
+﻿
+using BEffectWeb.DataAccess.Data;
+using BEffectWeb.DataAccess.Repository.Interface;
 using BEffectWeb.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -8,16 +10,16 @@ namespace BEffectWeb.Controllers
 {
     public class CategoryController : Controller
     {
-        private readonly AppDbContext _appDb;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CategoryController(AppDbContext appDb)
+        public CategoryController(IUnitOfWork unitOfWork)
         {
-            _appDb = appDb;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<IActionResult> Index()
         {
-            List<Category> objCategoryList = await _appDb.Categories.ToListAsync();
+            IEnumerable<Category> objCategoryList = await _unitOfWork.Category.GetAll();
             return View(objCategoryList);
         }
 
@@ -32,8 +34,9 @@ namespace BEffectWeb.Controllers
 
             if (ModelState.IsValid)
             {
-                _appDb.Categories.Add(obj);
-                await _appDb.SaveChangesAsync();
+                _unitOfWork.Category.Add(obj);
+                await _unitOfWork.SaveAsync();
+                TempData["success"] = "Category created successfully";
                 return RedirectToAction("Index");
             }
             return View();
@@ -44,7 +47,7 @@ namespace BEffectWeb.Controllers
         {
             if (id is null || id == 0) return NotFound();
 
-            Category categoryFromDb = await _appDb.Categories.FindAsync(id);
+            Category? categoryFromDb = await _unitOfWork.Category.GetByCondition(u => u.Id==id);
             if (categoryFromDb == null) return NotFound();
 
             return View(categoryFromDb);
@@ -56,11 +59,36 @@ namespace BEffectWeb.Controllers
 
             if (ModelState.IsValid)
             {
-                _appDb.Categories.Update(obj);
-                await _appDb.SaveChangesAsync();
-                  return RedirectToAction("Index");
+                _unitOfWork.Category.Update(obj);
+                await _unitOfWork.SaveAsync();
+                TempData["success"] = "Category updated successfully";
+                return RedirectToAction("Index");
             }
             return View();
+
+        }
+
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id is null || id == 0) return NotFound();
+
+            Category? categoryFromDb = await _unitOfWork.Category.GetByCondition(u => u.Id == id);
+            if (categoryFromDb == null) return NotFound();
+
+            return View(categoryFromDb);
+        }
+
+        [HttpPost,ActionName("Delete")]
+        public async Task<IActionResult> DeletePPOST(int? id)
+        {
+            Category? obj = await _unitOfWork.Category.GetByCondition(u => u.Id == id);
+            if (obj == null) return NotFound();
+
+            _unitOfWork.Category.Remove(obj);
+            await _unitOfWork.SaveAsync();
+            TempData["success"] = "Category deleted successfully";
+            return RedirectToAction("Index");
+
 
         }
     }

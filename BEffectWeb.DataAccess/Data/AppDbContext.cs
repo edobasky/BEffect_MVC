@@ -1,7 +1,7 @@
 ﻿using BEffectWeb.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BEffectWeb.Data
+namespace BEffectWeb.DataAccess.Data
 {
     public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
