@@ -1,4 +1,7 @@
-using BEffectWeb.Data;
+
+using BEffectWeb.DataAccess.Data;
+using BEffectWeb.DataAccess.Repository;
+using BEffectWeb.DataAccess.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("sqlConnection")));
+builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 
 
 var app = builder.Build();
