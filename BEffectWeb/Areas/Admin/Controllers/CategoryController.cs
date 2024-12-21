@@ -1,13 +1,13 @@
-﻿
-using BEffectWeb.DataAccess.Data;
+﻿using BEffectWeb.DataAccess.Data;
 using BEffectWeb.DataAccess.Repository.Interface;
 using BEffectWeb.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
-namespace BEffectWeb.Controllers
+namespace BEffectWeb.Areas.Admin.Controllers
 {
+    [Area("Admin")]
     public class CategoryController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -47,7 +47,7 @@ namespace BEffectWeb.Controllers
         {
             if (id is null || id == 0) return NotFound();
 
-            Category? categoryFromDb = await _unitOfWork.Category.GetByCondition(u => u.Id==id);
+            Category? categoryFromDb = await _unitOfWork.Category.GetByCondition(u => u.Id == id);
             if (categoryFromDb == null) return NotFound();
 
             return View(categoryFromDb);
@@ -78,7 +78,7 @@ namespace BEffectWeb.Controllers
             return View(categoryFromDb);
         }
 
-        [HttpPost,ActionName("Delete")]
+        [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeletePPOST(int? id)
         {
             Category? obj = await _unitOfWork.Category.GetByCondition(u => u.Id == id);
