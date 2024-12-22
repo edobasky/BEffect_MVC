@@ -22,7 +22,7 @@ namespace BEffectWeb.Areas.Admin.Controllers
 
         public async Task<IActionResult> Index()
         {
-            IEnumerable<Product> objCategoryList = await _unitOfWork.Product.GetAll();
+            IEnumerable<Product> objCategoryList = await _unitOfWork.Product.GetAll(includeProperties:"Category");
 
             return View(objCategoryList);
         }
@@ -76,6 +76,18 @@ namespace BEffectWeb.Areas.Admin.Controllers
                     string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
                     string productPath = Path.Combine(wwwRootPath, @"images\product");
 
+                    if (!string.IsNullOrEmpty(obj.Product.ImageUrl))
+                    {
+                        // delete the old image
+                        var oldImagePath = Path.Combine(wwwRootPath, obj.Product.ImageUrl.TrimStart('\\'));
+
+
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);    
+                        }
+                    }
+
                     using (var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
                     {
                         await file.CopyToAsync(fileStream);
@@ -85,7 +97,16 @@ namespace BEffectWeb.Areas.Admin.Controllers
                 }
 
 
-                _unitOfWork.Product.Add(obj.Product);
+                if (obj.Product.Id == 0)
+                {
+
+                    _unitOfWork.Product.Add(obj.Product);
+                }else
+                {
+
+                    _unitOfWork.Product.Update(obj.Product);
+                }
+
                 await _unitOfWork.SaveAsync();
                 TempData["success"] = "Product created successfully";
                 return RedirectToAction("Index");
@@ -124,7 +145,7 @@ namespace BEffectWeb.Areas.Admin.Controllers
 
         }*/
 
-        public async Task<IActionResult> Delete(int? id)
+      /*  public async Task<IActionResult> Delete(int? id)
         {
             if (id is null || id == 0) return NotFound();
 
@@ -132,9 +153,9 @@ namespace BEffectWeb.Areas.Admin.Controllers
             if (productFromDb == null) return NotFound();
 
             return View(productFromDb);
-        }
+        }*/
 
-        [HttpPost, ActionName("Delete")]
+       /* [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeletePOST(int? id)
         {
             Product? obj = await _unitOfWork.Product.GetByCondition(u => u.Id == id);
@@ -146,6 +167,41 @@ namespace BEffectWeb.Areas.Admin.Controllers
             return RedirectToAction("Index");
 
 
+        }*/
+
+
+        #region API CALLS
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            IEnumerable<Product> objProductList = await _unitOfWork.Product.GetAll(includeProperties: "Category");
+
+            return Json(new {data = objProductList});
         }
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int? id)
+        {
+            var productToBeDeleted = await _unitOfWork.Product.GetByCondition(u =>u.Id == id);  
+
+            if (productToBeDeleted == null)
+            {
+                return Json(new {success = false, message = "Error while deleting"});
+            }
+                      // delete the old image
+                  var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, productToBeDeleted.ImageUrl.TrimStart('\\'));
+
+
+            if (System.IO.File.Exists(oldImagePath))
+            {
+                System.IO.File.Delete(oldImagePath);
+            }
+
+            _unitOfWork.Product.Remove(productToBeDeleted);
+            await _unitOfWork.SaveAsync();
+
+            return Json(new { success = true, message = "Delete Successful" });
+        }
+        #endregion
     }
 }
