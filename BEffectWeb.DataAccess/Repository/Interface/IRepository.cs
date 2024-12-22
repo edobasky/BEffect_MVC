@@ -10,9 +10,9 @@ namespace BEffectWeb.DataAccess.Repository.Interface
     public interface IRepository<T> where T : class
     {
         Task<T?> GetById(int id);
-        Task<IEnumerable<T>> GetAll();
+        Task<IEnumerable<T>> GetAll(string? includeProperties = null);
         // Below is the generic form of writing first or default,inother words passing a filter linq by condition
-        Task<T?> GetByCondition(Expression<Func<T,bool>> filter);
+        Task<T?> GetByCondition(Expression<Func<T,bool>> filter, string? includeProperties = null);
         void Add(T entity);
        // void Update(T entity);
         void Remove(T entity);
